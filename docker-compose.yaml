@@ -1,0 +1,93 @@
+version: '3.8'
+# ---------------------------------------------------
+# Подключение через TightVNC: host.docker.internal:5901
+# http://127.0.0.1:8000
+# Пароли на remote & ssh: secret
+# ---------------------------------------------------
+services:
+  adcm:
+    image: alexsuf/adcm
+    container_name: adcm
+    restart: always
+    environment:
+      TZ: Europe/Moscow
+    ports:
+      - 8000:8000
+    volumes:
+      - adcm_db:/adcm/data
+
+  remote:
+    image: alexsuf/remote
+    container_name: remote
+    restart: always
+    mem_limit: 2g
+    ports:
+      - 5901:5901
+    environment:
+      password: secret
+      TZ: Europe/Moscow
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./files:/mnt/files
+
+  namenode1:
+    image: alexsuf/centos-ssh
+    container_name: namenode1
+    privileged: true
+    ports:
+      - 9870:9870
+      - 8020:8020
+      - 9000:9000
+    environment:
+      TZ: Europe/Moscow
+    volumes:
+      - ./namenode1:/data
+      - ./namenode1_fs:/sys/fs/cgroup
+    command: "/usr/sbin/init"
+
+  namenode2:
+    image: alexsuf/centos-ssh
+    container_name: namenode2
+    privileged: true
+    environment:
+      TZ: Europe/Moscow
+    volumes:
+      - ./namenode2:/data
+      - ./namenode2_fs:/sys/fs/cgroup
+
+  datanode1:
+    image: alexsuf/centos-ssh
+    container_name: datanode1
+    privileged: true
+    ports:
+      - 9864:9864
+    environment:
+      TZ: Europe/Moscow
+    volumes:
+      - ./datanode1:/data
+      - ./datanode1_fs:/sys/fs/cgroup
+
+  datanode2:
+    image: alexsuf/centos-ssh
+    container_name: datanode2
+    privileged: true
+    environment:
+      TZ: Europe/Moscow
+    volumes:
+      - ./datanode2:/data
+      - ./datanode2_fs:/sys/fs/cgroup
+
+  datanode3:
+    image: alexsuf/centos-ssh
+    container_name: datanode3
+    privileged: true
+    environment:
+      TZ: Europe/Moscow
+    volumes:
+      - ./datanode3:/data
+      - ./datanode3_fs:/sys/fs/cgroup
+
+volumes:
+  adcm_db:
+    external: true
